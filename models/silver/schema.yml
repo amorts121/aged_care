@@ -1,0 +1,167 @@
+version: 2
+
+models:
+  - name: slv_provider_registration
+    description: >
+      Core silver model for the provider domain. Each row represents a single registration
+      application, joining provider, service, and risk assessment attributes into a unified
+      subject-area model. Risk assessment columns are null for registrations that have not
+      been approved. Derived flags are calculated here and carried through to gold.
+      Grain: one row per registration_id.
+    config:
+      tags: ['silver', 'domain:provider']
+    columns:
+      - name: registration_key
+        description: Surrogate primary key for the registration, generated from registration_id.
+        tests:
+          - unique
+          - not_null
+      - name: provider_key
+        description: Surrogate foreign key to the provider dimension.
+        tests:
+          - not_null
+      - name: service_key
+        description: Surrogate foreign key to the service dimension.
+        tests:
+          - not_null
+      - name: registration_id
+        description: Natural key for the registration application, sourced from the registration system.
+        tests:
+          - unique
+          - not_null
+      - name: provider_id
+        description: Natural key for the provider.
+        tests:
+          - not_null
+      - name: provider_name
+        description: Registered trading name of the provider.
+        tests:
+          - not_null
+      - name: abn
+        description: Australian Business Number of the provider. Nullable.
+      - name: provider_state
+        description: State or territory where the provider is headquartered.
+        tests:
+          - not_null
+      - name: service_id
+        description: Natural key for the service being registered.
+        tests:
+          - not_null
+      - name: service_name
+        description: Name of the care service.
+        tests:
+          - not_null
+      - name: service_type
+        description: Type of care service (Residential Care, Home Care, Respite). Nullable where source is missing.
+      - name: service_state
+        description: State or territory where the service operates.
+        tests:
+          - not_null
+      - name: capacity
+        description: Maximum number of care recipients the service is approved to support.
+      - name: submitted_date
+        description: Date the registration application was submitted by the provider.
+        tests:
+          - not_null
+      - name: registration_status
+        description: Current status of the registration (Submitted, Under Review, Approved, Rejected).
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['Submitted', 'Under Review', 'Approved', 'Rejected']
+      - name: status_date
+        description: Date the registration moved to its current status. Nullable for early-stage records.
+      - name: assessed_by
+        description: Staff member who assessed the registration. Nullable for unassessed records.
+      - name: assessment_id
+        description: Natural key for the risk assessment. Null for non-approved registrations.
+      - name: risk_rating
+        description: Qualitative risk rating (Low, Medium, High). Null for non-approved registrations.
+        tests:
+          - accepted_values:
+              values: ['Low', 'Medium', 'High']
+              config:
+                where: "risk_rating is not null"
+      - name: risk_score
+        description: Numeric risk score. Higher scores indicate greater risk. Null for non-approved registrations.
+      - name: assessment_date
+        description: Date the risk assessment was conducted. Null for non-approved registrations.
+      - name: next_review_date
+        description: Date the provider risk rating is next due for review. Null for non-approved registrations.
+      - name: is_approved
+        description: TRUE if the registration has been approved, FALSE otherwise.
+        tests:
+          - not_null
+      - name: is_rejected
+        description: TRUE if the registration has been rejected, FALSE otherwise.
+        tests:
+          - not_null
+      - name: is_high_risk
+        description: TRUE if the provider has been assessed as High risk, FALSE otherwise. FALSE for non-approved registrations.
+        tests:
+          - not_null
+      - name: is_review_overdue
+        description: TRUE if the risk assessment next_review_date is in the past, FALSE otherwise.
+        tests:
+          - not_null
+      - name: _loaded_date
+        description: Date this record was loaded into the silver layer.
+        tests:
+          - not_null
+
+  - name: slv_provider_dim
+    description: >
+      Provider dimension model. One row per provider, enriched with aggregated service
+      and registration counts. Used as the primary provider reference in the gold layer.
+      Grain: one row per provider_id.
+    config:
+      tags: ['silver', 'domain:provider']
+    columns:
+      - name: provider_key
+        description: Surrogate primary key for the provider, generated from provider_id.
+        tests:
+          - unique
+          - not_null
+      - name: provider_id
+        description: Natural key for the provider.
+        tests:
+          - unique
+          - not_null
+      - name: provider_name
+        description: Registered trading name of the provider.
+        tests:
+          - not_null
+      - name: abn
+        description: Australian Business Number. Nullable.
+      - name: state
+        description: State or territory where the provider is headquartered.
+        tests:
+          - not_null
+      - name: phone
+        description: Provider contact phone number. Nullable.
+      - name: email
+        description: Provider contact email address.
+        tests:
+          - not_null
+      - name: created_date
+        description: Date the provider record was created in the source system.
+        tests:
+          - not_null
+      - name: total_services
+        description: Total number of services registered to this provider.
+      - name: total_registrations
+        description: Total number of registration applications submitted by this provider.
+      - name: approved_registrations
+        description: Number of registrations that have been approved for this provider.
+      - name: rejected_registrations
+        description: Number of registrations that have been rejected for this provider.
+      - name: max_service_capacity
+        description: Highest capacity value across all services for this provider.
+      - name: is_active_provider
+        description: TRUE if the provider has at least one approved registration, FALSE otherwise.
+        tests:
+          - not_null
+      - name: _loaded_date
+        description: Date this record was loaded into the silver layer.
+        tests:
+          - not_null

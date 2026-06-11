@@ -1,0 +1,119 @@
+version: 2
+
+models:
+  - name: gld_registration_summary
+    description: >
+      Gold layer registration summary model. Each row represents a single provider
+      registration application, enriched with provider, service, and risk assessment
+      attributes. Designed for consumption by reporting tools and downstream teams.
+      Includes derived reporting columns (days_to_decision, registration_summary_status)
+      calculated from the silver layer flags.
+      Grain: one row per registration_id.
+    config:
+      tags: ['gold', 'domain:provider']
+    columns:
+      - name: registration_key
+        description: Surrogate primary key for the registration.
+        tests:
+          - unique
+          - not_null
+      - name: provider_key
+        description: Surrogate foreign key to the provider dimension.
+        tests:
+          - not_null
+      - name: service_key
+        description: Surrogate foreign key to the service dimension.
+        tests:
+          - not_null
+      - name: registration_id
+        description: Natural key for the registration application.
+        tests:
+          - unique
+          - not_null
+      - name: provider_id
+        description: Natural key for the provider.
+        tests:
+          - not_null
+      - name: provider_name
+        description: Registered trading name of the provider.
+        tests:
+          - not_null
+      - name: abn
+        description: Australian Business Number of the provider. Nullable.
+      - name: provider_state
+        description: State or territory where the provider is headquartered.
+        tests:
+          - not_null
+      - name: service_name
+        description: Name of the care service being registered.
+        tests:
+          - not_null
+      - name: service_type
+        description: Type of care service (Residential Care, Home Care, Respite). Nullable where source is missing.
+      - name: service_state
+        description: State or territory where the service operates.
+        tests:
+          - not_null
+      - name: capacity
+        description: Maximum number of care recipients the service is approved to support.
+      - name: submitted_date
+        description: Date the registration was submitted by the provider.
+        tests:
+          - not_null
+      - name: registration_status
+        description: Current status of the registration (Submitted, Under Review, Approved, Rejected).
+        tests:
+          - not_null
+      - name: status_date
+        description: Date the registration moved to its current status. Nullable for early-stage records.
+      - name: assessed_by
+        description: Staff member who assessed the registration. Nullable.
+      - name: risk_rating
+        description: Risk rating assigned at time of approval (Low, Medium, High). Null for non-approved registrations.
+      - name: risk_score
+        description: Numeric risk score. Null for non-approved registrations.
+      - name: assessment_date
+        description: Date the risk assessment was conducted. Null for non-approved registrations.
+      - name: next_review_date
+        description: Date the risk rating is next due for review. Null for non-approved registrations.
+      - name: is_approved
+        description: TRUE if the registration has been approved.
+        tests:
+          - not_null
+      - name: is_rejected
+        description: TRUE if the registration has been rejected.
+        tests:
+          - not_null
+      - name: is_high_risk
+        description: TRUE if the provider has been assessed as High risk.
+        tests:
+          - not_null
+      - name: is_review_overdue
+        description: TRUE if the risk assessment review date has passed.
+        tests:
+          - not_null
+      - name: days_to_decision
+        description: >
+          Number of days between the submitted_date and the status_date. For records
+          still in progress, calculated to today's date. Useful for tracking assessment
+          turnaround time.
+      - name: registration_summary_status
+        description: >
+          Derived reporting label combining registration status and risk rating into a
+          single human-readable field. Values: Approved - High Risk, Approved - Medium Risk,
+          Approved - Low Risk, Approved - Pending Assessment, Rejected, Under Review, Submitted.
+        tests:
+          - not_null
+          - accepted_values:
+              values:
+                - 'Approved - High Risk'
+                - 'Approved - Medium Risk'
+                - 'Approved - Low Risk'
+                - 'Approved - Pending Assessment'
+                - 'Rejected'
+                - 'Under Review'
+                - 'Submitted'
+      - name: _loaded_date
+        description: Date this record was loaded into the gold layer.
+        tests:
+          - not_null

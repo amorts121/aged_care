@@ -1,0 +1,11 @@
+SERVICE_ID,PROVIDER_ID,SERVICE_NAME,SERVICE_TYPE,STATE,CAPACITY,START_DATE
+S001,P001,Sunrise Melbourne East,Residential Care,VIC,80,2023-03-01
+S002,P001,Sunrise Melbourne West,Home Care,VIC,120,2023-03-01
+S003,P002,Golden Years Sydney,RESIDENTIAL CARE,NSW,60,2023-04-15
+S004,P003,Coastal Living Brisbane,home care,QLD,90,2023-05-20
+S005,P005,Harmony Adelaide,Residential Care,SA,45,2023-06-10
+S006,P006,Blue Mountains Residential,Residential Care,NSW,100,2023-07-01
+S007,P007,Southern Cross Perth,Home Care,WA,75,2023-08-15
+S008,P008,Riverbank Respite,Respite,VIC,30,2023-09-01
+S009,P008,Riverbank Home,Home Care,VIC,50,2023-09-01
+S010,P003,Coastal Living Gold Coast,,QLD,40,2023-10-05

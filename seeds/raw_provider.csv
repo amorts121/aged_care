@@ -1,0 +1,9 @@
+PROVIDER_ID,PROVIDER_NAME,ABN,STATE,PHONE,EMAIL,CREATED_DATE
+P001,Sunrise Aged Care Pty Ltd,12345678901,VIC,0398765432,admin@sunriseac.com.au,2023-01-15
+P002,GOLDEN YEARS CARE,98765432100,NSW,0287654321,info@goldenyears.com.au,2023-02-20
+P003,Coastal Living Services,45678901234,QLD,0712345678,contact@coastalliving.com.au,2023-03-10
+P004,Sunrise Aged Care Pty Ltd,12345678901,VIC,0398765432,admin@sunriseac.com.au,2023-01-15
+P005,Harmony Home Care,,SA,0812345678,hello@harmonyhome.com.au,2023-04-05
+P006,Blue Mountains Care Group,67890123456,NSW,,care@bluemountains.com.au,2023-05-12
+P007,southern cross aged care,34567890123,WA,0912345678,info@southerncross.com.au,2023-06-01
+P008,Riverbank Community Care,23456789012,VIC,0356789012,admin@riverbank.com.au,2023-07-18

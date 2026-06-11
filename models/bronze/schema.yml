@@ -1,0 +1,211 @@
+version: 2
+
+models:
+  - name: brz_raw_provider
+    description: >
+      Cleaned and deduplicated provider records sourced from RAW.RAW_PROVIDER.
+      Deduplication is applied on PROVIDER_ID, retaining the earliest created record.
+      Provider names are title-cased and trimmed. ABN and phone are nullified if blank.
+    config:
+      tags: ['bronze', 'domain:provider']
+    columns:
+      - name: provider_id
+        description: Natural key for the provider, sourced from the registration system.
+        tests:
+          - unique
+          - not_null
+      - name: provider_name
+        description: Registered trading name of the provider, title-cased and trimmed from source.
+        tests:
+          - not_null
+      - name: abn
+        description: Australian Business Number. Nullable - not all source records include an ABN.
+      - name: state
+        description: Australian state or territory where the provider is headquartered.
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['NSW', 'VIC', 'QLD', 'SA', 'WA', 'TAS', 'NT', 'ACT']
+      - name: phone
+        description: Provider contact phone number. Nullable - not all source records include a phone number.
+      - name: email
+        description: Provider contact email address, lowercased from source.
+        tests:
+          - not_null
+      - name: created_date
+        description: Date the provider record was created in the source system.
+        tests:
+          - not_null
+      - name: _loaded_date
+        description: Date this record was loaded into the bronze layer.
+        tests:
+          - not_null
+      - name: _source
+        description: Source table reference in the format SCHEMA.TABLE_NAME.
+        tests:
+          - not_null
+
+  - name: brz_raw_service
+    description: >
+      Cleaned service records sourced from RAW.RAW_SERVICE. Each record represents
+      a care service offered by a provider. SERVICE_TYPE values are title-cased to
+      resolve inconsistent casing from the source system (e.g. RESIDENTIAL CARE,
+      home care, Residential Care are all normalised to title case).
+    config:
+      tags: ['bronze', 'domain:provider']
+    columns:
+      - name: service_id
+        description: Natural key for the service record.
+        tests:
+          - unique
+          - not_null
+      - name: provider_id
+        description: Foreign key to brz_raw_provider. Identifies the provider delivering this service.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('brz_raw_provider')
+              field: provider_id
+      - name: service_name
+        description: Name of the care service, title-cased from source.
+        tests:
+          - not_null
+      - name: service_type
+        description: >
+          Type of care service delivered. Nullable - some source records have no service type.
+          Values normalised to title case in bronze.
+        tests:
+          - accepted_values:
+              values: ['Residential Care', 'Home Care', 'Respite']
+              config:
+                where: "service_type is not null"
+      - name: state
+        description: State or territory where the service operates.
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['NSW', 'VIC', 'QLD', 'SA', 'WA', 'TAS', 'NT', 'ACT']
+      - name: capacity
+        description: Maximum number of care recipients the service is approved to support.
+      - name: start_date
+        description: Date the service commenced operations.
+        tests:
+          - not_null
+      - name: _loaded_date
+        description: Date this record was loaded into the bronze layer.
+        tests:
+          - not_null
+      - name: _source
+        description: Source table reference in the format SCHEMA.TABLE_NAME.
+        tests:
+          - not_null
+
+  - name: brz_raw_registration
+    description: >
+      Cleaned registration records sourced from RAW.RAW_REGISTRATION. Each record
+      represents a provider's application to deliver a specific service. Registration
+      status values are title-cased from source. Records may be at any point in the
+      workflow: Submitted, Under Review, Approved, or Rejected.
+    config:
+      tags: ['bronze', 'domain:provider']
+    columns:
+      - name: registration_id
+        description: Natural key for the registration application.
+        tests:
+          - unique
+          - not_null
+      - name: provider_id
+        description: Foreign key to brz_raw_provider. The provider submitting the registration.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('brz_raw_provider')
+              field: provider_id
+      - name: service_id
+        description: Foreign key to brz_raw_service. The service being registered.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('brz_raw_service')
+              field: service_id
+      - name: submitted_date
+        description: Date the registration application was submitted.
+        tests:
+          - not_null
+      - name: registration_status
+        description: Current status of the registration application.
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['Submitted', 'Under Review', 'Approved', 'Rejected']
+      - name: status_date
+        description: Date the registration moved to its current status. Nullable for early-stage records.
+      - name: assessed_by
+        description: Staff member who assessed the registration. Nullable for unassessed records.
+      - name: notes
+        description: Free text notes added during assessment. Nullable.
+      - name: _loaded_date
+        description: Date this record was loaded into the bronze layer.
+        tests:
+          - not_null
+      - name: _source
+        description: Source table reference in the format SCHEMA.TABLE_NAME.
+        tests:
+          - not_null
+
+  - name: brz_raw_risk_assessment
+    description: >
+      Cleaned risk assessment records sourced from RAW.RAW_RISK_ASSESSMENT. A risk
+      assessment is only created for registrations that have been Approved. Records
+      contain a risk rating (Low, Medium, High), a numeric risk score, and a next
+      review date. Some next review dates may be in the past, indicating an overdue review.
+    config:
+      tags: ['bronze', 'domain:provider']
+    columns:
+      - name: assessment_id
+        description: Natural key for the risk assessment record.
+        tests:
+          - unique
+          - not_null
+      - name: registration_id
+        description: Foreign key to brz_raw_registration. The registration this assessment relates to.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('brz_raw_registration')
+              field: registration_id
+      - name: provider_id
+        description: Foreign key to brz_raw_provider. Denormalised from the registration for convenience.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('brz_raw_provider')
+              field: provider_id
+      - name: assessment_date
+        description: Date the risk assessment was conducted.
+        tests:
+          - not_null
+      - name: risk_rating
+        description: Qualitative risk rating assigned to the provider at time of assessment.
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['Low', 'Medium', 'High']
+      - name: risk_score
+        description: Numeric risk score underpinning the risk rating. Higher scores indicate greater risk.
+        tests:
+          - not_null
+      - name: assessor
+        description: Staff member who conducted the risk assessment.
+      - name: next_review_date
+        description: Date the provider's risk rating is next due for review. May be in the past for overdue reviews.
+        tests:
+          - not_null
+      - name: _loaded_date
+        description: Date this record was loaded into the bronze layer.
+        tests:
+          - not_null
+      - name: _source
+        description: Source table reference in the format SCHEMA.TABLE_NAME.
+        tests:
+          - not_null

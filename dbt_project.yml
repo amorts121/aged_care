@@ -1,0 +1,36 @@
+name: 'acqsc_demo'
+version: '1.0.0'
+config-version: 2
+
+profile: 'acqsc_demo'
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+models:
+  acqsc_demo:
+    bronze:
+      +materialized: view
+      +schema: bronze
+    silver:
+      +materialized: table
+      +schema: silver
+    gold:
+      +materialized: table
+      +schema: gold
+
+seeds:
+  acqsc_demo:
+    +schema: raw
+    +column_types:
+      PROVIDER_ID: varchar(10)
+      SERVICE_ID: varchar(10)
+      REGISTRATION_ID: varchar(10)
+      ASSESSMENT_ID: varchar(10)
