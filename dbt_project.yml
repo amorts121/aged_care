@@ -25,6 +25,9 @@ models:
     gold:
       +materialized: table
       +schema: gold
+    sandbox:
+      +materialized: view
+      +schema: sandbox
 
 seeds:
   acqsc_demo:

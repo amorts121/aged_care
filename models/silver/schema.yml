@@ -111,8 +111,10 @@ models:
 
   - name: slv_provider_dim
     description: >
-      Provider dimension model. One row per provider, enriched with aggregated service
-      and registration counts. Used as the primary provider reference in the gold layer.
+      Provider dimension model. One row per provider, carrying core provider attributes
+      from bronze. No aggregations are calculated at this layer — aggregated metrics
+      (registration counts, service counts, activity flags) are calculated in gold,
+      where they are needed for reporting.
       Grain: one row per provider_id.
     config:
       tags: ['silver', 'domain:provider']
@@ -145,20 +147,6 @@ models:
           - not_null
       - name: created_date
         description: Date the provider record was created in the source system.
-        tests:
-          - not_null
-      - name: total_services
-        description: Total number of services registered to this provider.
-      - name: total_registrations
-        description: Total number of registration applications submitted by this provider.
-      - name: approved_registrations
-        description: Number of registrations that have been approved for this provider.
-      - name: rejected_registrations
-        description: Number of registrations that have been rejected for this provider.
-      - name: max_service_capacity
-        description: Highest capacity value across all services for this provider.
-      - name: is_active_provider
-        description: TRUE if the provider has at least one approved registration, FALSE otherwise.
         tests:
           - not_null
       - name: _loaded_date

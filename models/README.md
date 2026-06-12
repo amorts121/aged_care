@@ -61,12 +61,14 @@ See [NAMING_CONVENTIONS.md](./docs/NAMING_CONVENTIONS.md) for the full reference
 - Source: bronze models
 - Materialisation: tables
 - Responsibilities: resolve relationships, apply business rules, generate surrogate keys, subject-area structure
+- **No aggregations** — silver carries row-level detail only
 - Grain documented in yml for every model
 
 ### Gold
 - Source: silver models
 - Materialisation: tables
 - Responsibilities: consumption-ready aggregations and joins for reporting
+- All aggregations (counts, sums, summary flags) are calculated here, not in silver
 - Named for the business concept they serve, not the technical structure
 
 ---
