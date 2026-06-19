@@ -1,0 +1,32 @@
+version: 2
+
+models:
+  - name: snd_registrations_under_review
+    description: >
+      SANDBOX MODEL — prototype only, not for production use.
+      Answers the business question: which registrations are currently under review
+      and how long have they been waiting? Reads directly from bronze to enable
+      rapid validation with the business before silver modelling begins.
+      Once the business has validated the logic and output, this model informs
+      the silver design and is retired.
+    config:
+      tags: ['sandbox']
+    columns:
+      - name: registration_id
+        description: Natural key for the registration.
+      - name: provider_name
+        description: Name of the provider awaiting assessment.
+      - name: state
+        description: State where the provider is headquartered.
+      - name: service_id
+        description: The service being registered.
+      - name: submitted_date
+        description: Date the registration was submitted.
+      - name: registration_status
+        description: Current status — all rows in this model are Under Review.
+      - name: assessed_by
+        description: Assigned assessor if one has been allocated.
+      - name: days_waiting
+        description: Number of days since submission to today.
+      - name: is_waiting_over_30_days
+        description: TRUE if the registration has been waiting more than 30 days for a decision.
