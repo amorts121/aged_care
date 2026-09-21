@@ -37,3 +37,10 @@ seeds:
       SERVICE_ID: varchar(10)
       REGISTRATION_ID: varchar(10)
       ASSESSMENT_ID: varchar(10)
+
+# Enables dbt's built-in "store failures" feature so failing test rows land
+# in a queryable schema — this is the raw material the monitoring demo runs on.
+data_tests:
+  ws8_monitoring_demo:
+    +store_failures: true
+    +schema: dbt_test_failures
