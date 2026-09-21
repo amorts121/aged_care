@@ -1,4 +1,4 @@
-provider_id,provider_name,region,active_flag
+provider_id,provider_name,state,is_active
 P001,Sunrise Aged Care,NSW,Y
 P002,Golden Years Living,VIC,Y
 P003,Harbour View Residential,NSW,Y

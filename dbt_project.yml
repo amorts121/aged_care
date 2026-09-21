@@ -40,7 +40,7 @@ seeds:
 
 # Enables dbt's built-in "store failures" feature so failing test rows land
 # in a queryable schema — this is the raw material the monitoring demo runs on.
-data_tests:
+tests:
   ws8_monitoring_demo:
     +store_failures: true
     +schema: dbt_test_failures
